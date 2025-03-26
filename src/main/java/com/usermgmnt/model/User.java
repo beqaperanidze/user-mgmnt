@@ -30,5 +30,8 @@ public class User {
     private Integer age;
 
     @Column(nullable = false)
+    private Boolean approved;
+
+    @Column(nullable = false)
     private Role role;
 }

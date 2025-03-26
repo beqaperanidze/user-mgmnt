@@ -35,6 +35,7 @@ public class UserServiceImpl implements UserService {
         user.setFirstName(userRegistrationDTO.getFirstName());
         user.setLastName(userRegistrationDTO.getLastName());
         user.setAge(userRegistrationDTO.getAge());
+        user.setApproved(false);
         user.setRole(Role.USER);
 
         return mapToUserDto(userRepository.save(user));
@@ -106,6 +107,7 @@ public class UserServiceImpl implements UserService {
         userDTO.setFirstName(user.getFirstName());
         userDTO.setLastName(user.getLastName());
         userDTO.setAge(user.getAge());
+        userDTO.setApproved(user.getApproved());
         userDTO.setRole(user.getRole());
         return userDTO;
 

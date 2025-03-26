@@ -10,5 +10,6 @@ public class UserDTO {
     private String firstName;
     private String lastName;
     private Integer age;
+    private Boolean approved;
     private Role role;
 }
