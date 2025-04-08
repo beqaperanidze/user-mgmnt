@@ -9,7 +9,7 @@ import java.util.List;
 @Service
 public interface UserService {
 
-    UserDTO createUser(UserRegistrationDTO userRegistrationDTO);
+//    UserDTO createUser(UserRegistrationDTO userRegistrationDTO);
 
     UserDTO getUserById(Long id);
 

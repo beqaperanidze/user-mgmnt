@@ -2,12 +2,13 @@ package com.usermgmnt.service.impl;
 
 import com.usermgmnt.dto.UserDTO;
 import com.usermgmnt.dto.UserRegistrationDTO;
-import com.usermgmnt.enums.Role;
 import com.usermgmnt.exceptions.EmailAlreadyExistsException;
+import com.usermgmnt.mapper.UserMapper;
 import com.usermgmnt.model.User;
 import com.usermgmnt.repository.UserRepository;
 import com.usermgmnt.service.UserService;
 import com.usermgmnt.exceptions.UserNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,49 +17,52 @@ import java.util.List;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
     }
 
-
-    @Override
-    @Transactional
-    public UserDTO createUser(UserRegistrationDTO userRegistrationDTO) {
-        if (userRepository.existsByEmail(userRegistrationDTO.getEmail())) {
-            throw new EmailAlreadyExistsException("Email already in use: %s".formatted(userRegistrationDTO.getEmail()));
-        }
-
-        User user = new User();
-        user.setEmail(userRegistrationDTO.getEmail());
-        user.setPassword(userRegistrationDTO.getPassword());
-        user.setFirstName(userRegistrationDTO.getFirstName());
-        user.setLastName(userRegistrationDTO.getLastName());
-        user.setAge(userRegistrationDTO.getAge());
-        user.setApproved(false);
-        user.setRole(Role.USER);
-
-        return mapToUserDto(userRepository.save(user));
-    }
+//    @Override
+//    @Transactional
+//    public UserDTO createUser(UserRegistrationDTO userRegistrationDTO) {
+//        if (userRepository.existsByEmail(userRegistrationDTO.getEmail())) {
+//            throw new EmailAlreadyExistsException("Email already in use: %s".formatted(userRegistrationDTO.getEmail()));
+//        }
+//
+//        User user = new User();
+//        user.setEmail(userRegistrationDTO.getEmail());
+//        user.setPassword(passwordEncoder.encode(userRegistrationDTO.getPassword()));
+//        user.setFirstName(userRegistrationDTO.getFirstName());
+//        user.setLastName(userRegistrationDTO.getLastName());
+//        user.setAge(userRegistrationDTO.getAge());
+//        user.setApproved(false);
+//        user.setRole(Role.USER);
+//
+//        return mapToUserDto(userRepository.save(user));
+//    }
 
     @Override
     public UserDTO getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: %d".formatted(id)));
-        return mapToUserDto(user);
+        return userMapper.mapToUserDto(user);
     }
 
     @Override
     public UserDTO getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found with Email: %s".formatted(email)));
-        return mapToUserDto(user);
+        return userMapper.mapToUserDto(user);
     }
 
     @Override
     public List<UserDTO> getAllUsers() {
         List<User> users = userRepository.findAll();
-        return users.stream().map(this::mapToUserDto).toList();
+        return users.stream().map(userMapper::mapToUserDto).toList();
     }
 
     @Transactional
@@ -87,10 +91,10 @@ public class UserServiceImpl implements UserService {
         }
 
         if (updatedUser.getPassword() != null) {
-            user.setPassword(updatedUser.getPassword());
+            user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
 
-        return mapToUserDto(userRepository.save(user));
+        return userMapper.mapToUserDto(userRepository.save(user));
     }
 
     @Override
@@ -98,18 +102,5 @@ public class UserServiceImpl implements UserService {
         userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: %d".formatted(id)));
         userRepository.deleteById(id);
-    }
-
-    public UserDTO mapToUserDto(User user) {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(user.getId());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setFirstName(user.getFirstName());
-        userDTO.setLastName(user.getLastName());
-        userDTO.setAge(user.getAge());
-        userDTO.setApproved(user.getApproved());
-        userDTO.setRole(user.getRole());
-        return userDTO;
-
     }
 }

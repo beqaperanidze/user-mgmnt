@@ -19,16 +19,16 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody UserRegistrationDTO userRegistrationDTO) {
-        UserDTO createdUser = userService.createUser(userRegistrationDTO);
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(createdUser.getId())
-                .toUri();
-        return ResponseEntity.created(location).body(createdUser);
-    }
+//    @PostMapping
+//    public ResponseEntity<UserDTO> createUser(@RequestBody UserRegistrationDTO userRegistrationDTO) {
+//        UserDTO createdUser = userService.createUser(userRegistrationDTO);
+//        URI location = ServletUriComponentsBuilder
+//                .fromCurrentRequest()
+//                .path("/{id}")
+//                .buildAndExpand(createdUser.getId())
+//                .toUri();
+//        return ResponseEntity.created(location).body(createdUser);
+//    }
 
     @GetMapping("/id/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
