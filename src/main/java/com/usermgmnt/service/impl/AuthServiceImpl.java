@@ -9,6 +9,9 @@ import com.usermgmnt.model.User;
 import com.usermgmnt.repository.UserRepository;
 import com.usermgmnt.security.JwtUtil;
 import com.usermgmnt.service.AuthService;
+import com.usermgmnt.service.EmailService;
+import jakarta.mail.MessagingException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,25 +22,32 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.crypto.KeyGenerator;
+import java.util.UUID;
+
 @Service
 public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
+    private final EmailService emailService;
     private final JwtUtil jwtUtil;
     private final UserMapper userMapper;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final StringRedisTemplate stringRedisTemplate;
 
-    public AuthServiceImpl(AuthenticationManager authenticationManager, UserDetailsService userDetailsService,
+    public AuthServiceImpl(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, EmailService emailService,
                            JwtUtil jwtUtil, UserMapper userMapper, UserRepository userRepository,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder, StringRedisTemplate stringRedisTemplate) {
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
+        this.emailService = emailService;
         this.jwtUtil = jwtUtil;
         this.userMapper = userMapper;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.stringRedisTemplate = stringRedisTemplate;
     }
 
     @Override
@@ -51,6 +61,15 @@ public class AuthServiceImpl implements AuthService {
         user.setAge(userRegistrationDTO.getAge());
         user.setRole(Role.USER);
         user.setApproved(true);
+
+        String confirmationKey = UUID.randomUUID().toString();
+        stringRedisTemplate.opsForValue().set(confirmationKey, userRegistrationDTO.getEmail());
+        try {
+            emailService.sendRegistrationConfirmationEmail(userRegistrationDTO.getEmail(), userRegistrationDTO.getFirstName());
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        }
+
         return userMapper.mapToUserDto(userRepository.save(user));
     }
 
