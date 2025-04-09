@@ -103,4 +103,14 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: %d".formatted(id)));
         userRepository.deleteById(id);
     }
+
+    @Override
+    public void deleteAllUsers() {
+        userRepository.deleteAll();
+    }
+
+    @Override
+    public void deleteAllNonApproved(){
+        userRepository.deleteAllByApprovedFalse();
+    }
 }

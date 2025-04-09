@@ -5,9 +5,6 @@ import com.usermgmnt.dto.UserRegistrationDTO;
 import com.usermgmnt.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -60,6 +57,12 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteAllUsers() {
+        userService.deleteAllUsers();
         return ResponseEntity.noContent().build();
     }
 }

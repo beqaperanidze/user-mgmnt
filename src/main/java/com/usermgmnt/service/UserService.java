@@ -20,4 +20,8 @@ public interface UserService {
     UserDTO updateUser(Long id, UserRegistrationDTO updatedUser);
 
     void deleteUser(Long id);
+
+    void deleteAllUsers();
+
+    void deleteAllNonApproved();
 }
