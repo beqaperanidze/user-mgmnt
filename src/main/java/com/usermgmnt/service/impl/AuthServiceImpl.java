@@ -93,14 +93,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public boolean confirm(String token) {
+    public boolean confirm(String token) throws MessagingException {
         String key = "confirmation:%s".formatted(token);
         String email = redisTemplate.opsForValue().get(key);
         User user = userRepository.findByEmail(email).orElseThrow(() ->
                 new UserNotFoundException("User not found with Email: %s".formatted(email)));
-
         user.setApproved(true);
         redisTemplate.delete(key);
+        emailService.sendWelcomeEmail(email, user.getFirstName());
         return true;
     }
 }

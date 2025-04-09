@@ -3,6 +3,7 @@ package com.usermgmnt.controller;
 import com.usermgmnt.dto.UserDTO;
 import com.usermgmnt.dto.UserRegistrationDTO;
 import com.usermgmnt.service.AuthService;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,10 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<UserDTO> register(@Valid @RequestBody UserRegistrationDTO registrationDTO) {
         UserDTO registeredUser = authService.register(registrationDTO);
-        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .header("X-Info", "Registration successful. Confirmation email sent.")
+                .body(registeredUser);
     }
 
     @PostMapping("/login")
@@ -32,8 +36,9 @@ public class AuthController {
     }
 
     @GetMapping("/confirm")
-    public boolean confirm(@RequestParam("token") String token) {
-        return authService.confirm(token);
+    public ResponseEntity<Boolean> confirm(@RequestParam("token") String token) throws MessagingException {
+        boolean confirmed = authService.confirm(token);
+        return ResponseEntity.ok(confirmed);
     }
 
     @Data

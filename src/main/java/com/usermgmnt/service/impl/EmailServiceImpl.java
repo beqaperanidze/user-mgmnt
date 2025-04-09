@@ -11,6 +11,7 @@ import org.thymeleaf.context.Context;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -52,6 +53,16 @@ public class EmailServiceImpl implements EmailService {
         String emailContent = templateEngine.process("registration-confirmation", context);
 
         sendHtmlEmail(to, "Confirm Your Registration", emailContent);
+    }
+
+    public void sendWelcomeEmail(String to, String username) throws MessagingException {
+        Context context = new Context();
+        context.setVariable("username", username);
+        context.setVariable("loginUrl", "%s/auth/login".formatted(baseUrl));
+
+        String emailContent = templateEngine.process("welcome-email", context);
+
+        sendHtmlEmail(to, "Welcome to Our Platform!", emailContent);
     }
 
     private void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
