@@ -19,14 +19,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 @Service
 public class EmailServiceImpl implements EmailService {
 
-    @Autowired
-    private JavaMailSender mailSender;
+    private final JavaMailSender mailSender;
 
-    @Autowired
-    private TemplateEngine templateEngine;
+    private final TemplateEngine templateEngine;
 
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -37,11 +34,17 @@ public class EmailServiceImpl implements EmailService {
     @Value("${confirmation.expiration.hours}")
     private int confirmationExpirationHours;
 
+    public EmailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine, RedisTemplate<String, String> redisTemplate) {
+        this.mailSender = mailSender;
+        this.templateEngine = templateEngine;
+        this.redisTemplate = redisTemplate;
+    }
+
     public void sendRegistrationConfirmationEmail(String to, String username) throws MessagingException {
         String token = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set("confirmation:%s".formatted(token), to, confirmationExpirationHours, TimeUnit.HOURS);
 
-        String confirmationUrl = "%s/confirm?token=%s".formatted(baseUrl, token);
+        String confirmationUrl = "%s/auth/confirm?token=%s".formatted(baseUrl, token);
         Context context = new Context();
         context.setVariable("username", username);
         context.setVariable("confirmationUrl", confirmationUrl);
@@ -63,14 +66,4 @@ public class EmailServiceImpl implements EmailService {
         mailSender.send(message);
     }
 
-    public boolean confirmRegistration(String token) {
-        String key = "confirmation:%s".formatted(token);
-        String email = redisTemplate.opsForValue().get(key);
-
-        if (email != null) {
-            redisTemplate.delete(key);
-            return true;
-        }
-        return false;
-    }
 }

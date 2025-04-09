@@ -7,5 +7,8 @@ import org.springframework.stereotype.Service;
 @Service
 public interface AuthService {
     UserDTO register(UserRegistrationDTO userRegistrationDTO);
+
     String login(String email, String password);
+
+    boolean confirm(String token);
 }

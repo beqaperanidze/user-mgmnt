@@ -7,10 +7,7 @@ import jakarta.validation.Valid;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -32,6 +29,11 @@ public class AuthController {
     public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
         String jwtToken = authService.login(loginRequest.getEmail(), loginRequest.getPassword());
         return ResponseEntity.ok(jwtToken);
+    }
+
+    @GetMapping("/confirm")
+    public boolean confirm(@RequestParam("token") String token) {
+        return authService.confirm(token);
     }
 
     @Data

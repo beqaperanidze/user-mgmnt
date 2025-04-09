@@ -4,6 +4,7 @@ import com.usermgmnt.dto.UserDTO;
 import com.usermgmnt.dto.UserRegistrationDTO;
 import com.usermgmnt.enums.Role;
 import com.usermgmnt.exceptions.AuthenticationFailedException;
+import com.usermgmnt.exceptions.UserNotFoundException;
 import com.usermgmnt.mapper.UserMapper;
 import com.usermgmnt.model.User;
 import com.usermgmnt.repository.UserRepository;
@@ -11,6 +12,8 @@ import com.usermgmnt.security.JwtUtil;
 import com.usermgmnt.service.AuthService;
 import com.usermgmnt.service.EmailService;
 import jakarta.mail.MessagingException;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,10 +39,12 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final StringRedisTemplate stringRedisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    public AuthServiceImpl(AuthenticationManager authenticationManager, UserDetailsService userDetailsService, EmailService emailService,
-                           JwtUtil jwtUtil, UserMapper userMapper, UserRepository userRepository,
-                           PasswordEncoder passwordEncoder, StringRedisTemplate stringRedisTemplate) {
+    public AuthServiceImpl(AuthenticationManager authenticationManager, UserDetailsService userDetailsService,
+                           EmailService emailService, JwtUtil jwtUtil, UserMapper userMapper,
+                           UserRepository userRepository, PasswordEncoder passwordEncoder,
+                           StringRedisTemplate stringRedisTemplate, RedisTemplate<String, String> redisTemplate) {
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
         this.emailService = emailService;
@@ -48,6 +53,7 @@ public class AuthServiceImpl implements AuthService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.stringRedisTemplate = stringRedisTemplate;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -69,7 +75,6 @@ public class AuthServiceImpl implements AuthService {
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
-
         return userMapper.mapToUserDto(userRepository.save(user));
     }
 
@@ -85,5 +90,17 @@ public class AuthServiceImpl implements AuthService {
         } catch (AuthenticationException e) {
             throw new AuthenticationFailedException("Invalid email or password");
         }
+    }
+
+    @Override
+    public boolean confirm(String token) {
+        String key = "confirmation:%s".formatted(token);
+        String email = redisTemplate.opsForValue().get(key);
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
+                new UserNotFoundException("User not found with Email: %s".formatted(email)));
+
+        user.setApproved(true);
+        redisTemplate.delete(key);
+        return true;
     }
 }
