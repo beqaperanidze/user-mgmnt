@@ -36,8 +36,8 @@ public class AuthController {
     }
 
     @GetMapping("/confirm")
-    public ResponseEntity<Boolean> confirm(@RequestParam("token") String token) throws MessagingException {
-        boolean confirmed = authService.confirm(token);
+    public ResponseEntity<String> confirm(@RequestParam("token") String token) throws MessagingException {
+        String confirmed = authService.confirm(token);
         return ResponseEntity.ok(confirmed);
     }
 

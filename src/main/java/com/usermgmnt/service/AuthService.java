@@ -11,5 +11,5 @@ public interface AuthService {
 
     String login(String email, String password);
 
-    boolean confirm(String token) throws MessagingException;
+    String confirm(String token) throws MessagingException;
 }

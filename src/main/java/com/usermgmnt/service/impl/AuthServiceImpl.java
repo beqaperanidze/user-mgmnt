@@ -18,7 +18,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,7 +81,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public boolean confirm(String token) throws MessagingException {
+    public String confirm(String token) throws MessagingException {
         String key = "confirmation:%s".formatted(token);
         String email = redisTemplate.opsForValue().get(key);
         User user = userRepository.findByEmail(email).orElseThrow(() ->
@@ -91,6 +90,6 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
         redisTemplate.delete(key);
         emailService.sendWelcomeEmail(email, user.getFirstName());
-        return true;
+        return "Email has been confirmed!";
     }
 }
