@@ -1,7 +1,6 @@
 package com.usermgmnt.service.impl;
 
 import com.usermgmnt.service.EmailService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -65,6 +64,21 @@ public class EmailServiceImpl implements EmailService {
         sendHtmlEmail(to, "Welcome to Our Platform!", emailContent);
     }
 
+    public void sendPasswordResetEmail(String to, String username) throws MessagingException {
+        String token = generateVerificationCode();
+
+        redisTemplate.opsForValue().set("password-reset:%s".formatted(to), token, 1, TimeUnit.HOURS);
+
+        Context context = new Context();
+        context.setVariable("username", username);
+        context.setVariable("token", token);
+        context.setVariable("expirationHours", 1);
+
+        String emailContent = templateEngine.process("password-reset", context);
+
+        sendHtmlEmail(to, "Reset Your Password", emailContent);
+    }
+
     private void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -77,4 +91,15 @@ public class EmailServiceImpl implements EmailService {
         mailSender.send(message);
     }
 
+    private String generateVerificationCode() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder code = new StringBuilder();
+        java.util.Random random = new java.util.Random();
+
+        for (int i = 0; i < 6; i++) {
+            code.append(chars.charAt(random.nextInt(chars.length())));
+        }
+
+        return code.toString();
+    }
 }

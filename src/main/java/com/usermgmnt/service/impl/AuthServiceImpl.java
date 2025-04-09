@@ -4,6 +4,7 @@ import com.usermgmnt.dto.UserDTO;
 import com.usermgmnt.dto.UserRegistrationDTO;
 import com.usermgmnt.enums.Role;
 import com.usermgmnt.exceptions.AuthenticationFailedException;
+import com.usermgmnt.exceptions.InvalidTokenException;
 import com.usermgmnt.exceptions.UserNotFoundException;
 import com.usermgmnt.mapper.UserMapper;
 import com.usermgmnt.model.User;
@@ -67,6 +68,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public String login(String email, String password) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -81,6 +83,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public String confirm(String token) throws MessagingException {
         String key = "confirmation:%s".formatted(token);
         String email = redisTemplate.opsForValue().get(key);
