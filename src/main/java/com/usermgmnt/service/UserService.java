@@ -38,7 +38,7 @@ public interface UserService {
     /**
      * Updates the details of an existing user.
      *
-     * @param id the unique identifier of the user to be updated
+     * @param id          the unique identifier of the user to be updated
      * @param updatedUser a {@link UserRegistrationDTO} object containing the updated user details
      * @return a {@link UserDTO} object containing the updated user's details
      */
